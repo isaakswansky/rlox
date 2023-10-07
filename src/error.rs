@@ -2,7 +2,7 @@
 pub enum ErrorType {
     IOError(u64, String),
     RuntimeError(u64, String),
-    UnknownTokenError(u64, String),
+    ScanError(u64, String),
 }
 
 #[derive(Debug)]

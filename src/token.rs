@@ -1,14 +1,4 @@
 #[derive(Debug, PartialEq, PartialOrd)]
-pub enum Literal {
-    Number(f64),
-    Str(String),
-    Identifier(String),
-    Nil,
-    True,
-    False,
-}
-
-#[derive(Debug, PartialEq, PartialOrd)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParenthesis,  // '('
@@ -34,9 +24,10 @@ pub enum TokenType {
     LessEqual,    // '<='
 
     // Literals.
-    Identifier,
-    String,
-    Number,
+    Identifier(String),
+    String(String),
+    Number(f64),
+    Boolean(bool),
 
     // Keywords.
     And,
@@ -63,6 +54,5 @@ pub enum TokenType {
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
-    pub literal: Option<Literal>,
     pub line: u64,
 }

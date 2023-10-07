@@ -31,25 +31,23 @@ impl Scanner {
         c
     }
 
-    fn add_token(&mut self, token_type: TokenType) -> Result<(), ErrorType> {
-        self.add_token_with_literal(token_type, None)
-    }
-
-    fn add_token_with_literal(
+    fn add_token(
         &mut self,
         token_type: TokenType,
-        literal: Option<Literal>,
     ) -> Result<(), ErrorType> {
-        let start = self.start as usize;
-        let current = self.current as usize;
-        let text = &self.code[start..current];
         self.tokens.push(Token {
             token_type: token_type,
-            lexeme: text.iter().collect(),
-            literal: literal,
+            lexeme: self.get_current_text(0, 0),
             line: self.line,
         });
         Ok(())
+    }
+
+    fn get_current_text(&self, start_offset: i64, end_offset: i64) -> String {
+        let start = (self.start as i64 + start_offset) as usize;
+        let current = (self.current as i64 + end_offset) as usize;
+        let text = &self.code[start..current];
+        text.iter().collect()
     }
 
     fn match_next(&mut self, expected: char) -> bool {
@@ -71,6 +69,22 @@ impl Scanner {
         } else {
             self.code[self.current as usize]
         }
+    }
+
+    fn add_string_literal(&mut self) -> Result<(), ErrorType> {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            return Err(ErrorType::ScanError(self.line, "Unterminated string.".to_string()));
+        }
+        self.advance();
+        let text = self.get_current_text(1, -1);
+        self.add_token(TokenType::String(text))
     }
 
     fn scan_token(&mut self) -> Result<(), ErrorType> {
@@ -129,12 +143,13 @@ impl Scanner {
                 };
                 self.add_token(token_type)
             }
+            '"' => self.add_string_literal(),
             ' ' | '\t' | '\r' => Ok(()), // Skip white spaces
             '\n' => {
                 self.line += 1;
                 Ok(())
             }
-            _ => Err(ErrorType::UnknownTokenError(
+            _ => Err(ErrorType::ScanError(
                 self.line,
                 "Encountered an unknown token".to_string(),
             )),
@@ -155,7 +170,6 @@ impl Scanner {
         self.tokens.push(Token {
             token_type: TokenType::EOF,
             lexeme: String::new(),
-            literal: None,
             line: self.line,
         });
         Ok(())
@@ -178,97 +192,81 @@ mod tests {
             Token {
                 token_type: TokenType::LeftParenthesis,
                 lexeme: "(".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::RightParenthesis,
                 lexeme: ")".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::LeftBrace,
                 lexeme: "{".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::RightBrace,
                 lexeme: "}".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Comma,
                 lexeme: ",".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Dot,
                 lexeme: ".".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Minus,
                 lexeme: "-".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Plus,
                 lexeme: "+".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Semicolon,
                 lexeme: ";".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Star,
                 lexeme: "*".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Slash,
                 lexeme: "/".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Bang,
                 lexeme: "!".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Equal,
                 lexeme: "=".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Less,
                 lexeme: "<".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::Greater,
                 lexeme: ">".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::EOF,
                 lexeme: "".to_string(),
-                literal: None,
                 line: 1,
             },
         ];
@@ -276,6 +274,33 @@ mod tests {
 
         // scan should always yield the same results
         scanner.scan().unwrap();
+        assert_eq!(expected, scanner.tokens);
+    }
+
+    #[test]
+    fn scan_strings() {
+        let test_code = r#""hello
+sir" "word""#.to_string();
+        let mut scanner = Scanner::new(test_code);
+        scanner.scan().unwrap();
+        let expected: Vec<Token> = vec![
+            Token {
+                token_type: TokenType::String("hello\nsir".to_string()),
+                lexeme: r#""hello
+sir""#.to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::String("word".to_string()),
+                lexeme: r#""word""#.to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 2,
+            }
+        ];
         assert_eq!(expected, scanner.tokens);
     }
 
@@ -291,31 +316,26 @@ mod tests {
             Token {
                 token_type: TokenType::BangEqual,
                 lexeme: "!=".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::EqualEqual,
                 lexeme: "==".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::LessEqual,
                 lexeme: "<=".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::GreaterEqual,
                 lexeme: ">=".to_string(),
-                literal: None,
                 line: 1,
             },
             Token {
                 token_type: TokenType::EOF,
                 lexeme: "".to_string(),
-                literal: None,
                 line: 1,
             },
         ];
@@ -335,25 +355,21 @@ mod tests {
             Token {
                 token_type: TokenType::LeftParenthesis,
                 lexeme: "(".to_string(),
-                literal: None,
                 line: 1
             },
             Token {
                 token_type: TokenType::Minus,
                 lexeme: "-".to_string(),
-                literal: None,
                 line: 2
             },
             Token {
                 token_type: TokenType::EqualEqual,
                 lexeme: "==".to_string(),
-                literal: None,
                 line: 3
             },
             Token {
                 token_type: TokenType::EOF,
                 lexeme: "".to_string(),
-                literal: None,
                 line: 4
             },
         ];
@@ -369,37 +385,31 @@ mod tests {
             Token {
                 token_type: TokenType::LeftParenthesis,
                 lexeme: "(".to_string(),
-                literal: None,
                 line: 1
             },
             Token {
                 token_type: TokenType::RightParenthesis,
                 lexeme: ")".to_string(),
-                literal: None,
                 line: 1
             },
             Token {
                 token_type: TokenType::LeftBrace,
                 lexeme: "{".to_string(),
-                literal: None,
                 line: 1
             },
             Token {
                 token_type: TokenType::RightBrace,
                 lexeme: "}".to_string(),
-                literal: None,
                 line: 1
             },
             Token {
                 token_type: TokenType::Comma,
                 lexeme: ",".to_string(),
-                literal: None,
                 line: 1
             },
             Token {
                 token_type: TokenType::EOF,
                 lexeme: "".to_string(),
-                literal: None,
                 line: 1
             }
         ];

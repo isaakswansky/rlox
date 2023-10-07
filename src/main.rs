@@ -15,7 +15,7 @@ mod rlox {
         match scanner.scan() {
             Err(ErrorType::IOError(line, msg)) => Err(Box::new(Error(line, msg))),
             Err(ErrorType::RuntimeError(line, msg)) => Err(Box::new(Error(line, msg))),
-            Err(ErrorType::UnknownTokenError(line, msg)) => Err(Box::new(Error(line, msg))),
+            Err(ErrorType::ScanError(line, msg)) => Err(Box::new(Error(line, msg))),
             Ok(_) => {
                 for token in scanner.tokens.iter() {
                     println!("{:?}", token);
