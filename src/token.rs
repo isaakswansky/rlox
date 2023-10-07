@@ -30,6 +30,14 @@ pub enum TokenType {
     Boolean(bool),
 
     // Keywords.
+    Keyword(Keyword),
+    
+
+    EOF,
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum Keyword {
     And,
     Class,
     Else,
@@ -46,8 +54,6 @@ pub enum TokenType {
     True,
     Var,
     While,
-
-    EOF,
 }
 
 #[derive(Debug, PartialEq, PartialOrd)]
