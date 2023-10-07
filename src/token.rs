@@ -27,11 +27,9 @@ pub enum TokenType {
     Identifier(String),
     String(String),
     Number(f64),
-    Boolean(bool),
 
     // Keywords.
     Keyword(Keyword),
-    
 
     EOF,
 }

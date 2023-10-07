@@ -2,7 +2,6 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 use crate::error::*;
-use crate::token;
 use crate::token::*;
 
 pub struct Scanner {
@@ -135,7 +134,10 @@ impl Scanner {
         if let Ok(number) = text.parse::<f64>() {
             self.add_token(TokenType::Number(number))
         } else {
-            Err(ErrorType::ScanError(self.line, "Invalid number format.".to_string()))
+            Err(ErrorType::ScanError(
+                self.line,
+                "Invalid number format.".to_string(),
+            ))
         }
     }
 
@@ -145,7 +147,6 @@ impl Scanner {
         }
         let text = self.get_current_text(0, 0);
         let token_type = if let Some(keyword) = KEYWORD_MAP.get(text.as_str()) {
-
             TokenType::Keyword(keyword.clone())
         } else {
             TokenType::Identifier(self.get_current_text(0, 0))
@@ -401,12 +402,12 @@ sir""#
             Token {
                 token_type: TokenType::Number(1.234),
                 lexeme: "1.234".to_string(),
-                line: 1
+                line: 1,
             },
             Token {
                 token_type: TokenType::Number(1234.0),
                 lexeme: "1234".to_string(),
-                line: 1
+                line: 1,
             },
             Token {
                 token_type: TokenType::EOF,
@@ -426,12 +427,12 @@ sir""#
             Token {
                 token_type: TokenType::Identifier("my_var1".to_string()),
                 lexeme: "my_var1".to_string(),
-                line: 1
+                line: 1,
             },
             Token {
                 token_type: TokenType::Identifier("thisisa123name".to_string()),
                 lexeme: "thisisa123name".to_string(),
-                line: 2
+                line: 2,
             },
             Token {
                 token_type: TokenType::EOF,
