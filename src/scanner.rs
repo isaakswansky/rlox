@@ -268,6 +268,103 @@ mod tests {
     use super::*;
 
     #[test]
+    fn scan_keywords() {
+        let test_code = "and class else false fun for if nil or print return super this true var while".to_string();
+        let mut scanner = Scanner::new(test_code);
+        if let Err(_) = scanner.scan() {
+            assert!(false);
+        }
+        let expected:Vec<Token> = vec![
+            Token {
+                token_type: TokenType::Keyword(Keyword::And),
+                lexeme: "and".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Class),
+                lexeme: "class".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Else),
+                lexeme: "else".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::False),
+                lexeme: "false".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Fun),
+                lexeme: "fun".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::For),
+                lexeme: "for".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::If),
+                lexeme: "if".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Nil),
+                lexeme: "nil".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Or),
+                lexeme: "or".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Print),
+                lexeme: "print".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Return),
+                lexeme: "return".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Super),
+                lexeme: "super".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::This),
+                lexeme: "this".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::True),
+                lexeme: "true".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::Var),
+                lexeme: "var".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::Keyword(Keyword::While),
+                lexeme: "while".to_string(),
+                line: 1
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+        assert_eq!(expected, scanner.tokens);
+    }
+
+    #[test]
     fn scan_single_tokens() {
         let test_code = "(){},.-+;*/! =<>// comment".to_string();
         let mut scanner = Scanner::new(test_code);
